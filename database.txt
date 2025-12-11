@@ -1,0 +1,147 @@
+STEP 7 — DATABASE SCHEMA DESIGN (CONCEPTUAL)
+1. Authentication & Users
+Tables:
+users → id, email, password_hash, full_name, role, business_id, created_at, last_login
+roles → id, name, permissions
+user_sessions → id, user_id, token, expires_at
+Relationships:
+One business → many users
+One user → many sessions
+
+
+2. Businesses (Tenants)
+Tables:
+businesses → id, name, subscription_plan, created_at, settings(JSON)
+Relationships:
+One business → many users
+One business → many products, sales, suppliers
+
+
+3. Products
+Tables:
+products → id, business_id, sku, name, description, base_price, cost_price, quantity, category_id, status, created_at
+categories → id, business_id, name, parent_id
+product_variants → id, product_id, variant_attributes(JSON), sku, price, quantity
+Relationships:
+One category → many products
+One product → many variants
+
+
+4. Inventory
+Tables:
+stock_levels → id, product_id, quantity, location_id
+stock_history → id, product_id, type(IN/OUT/ADJUST), quantity, reason, user_id, created_a
+stock_alerts → id, product_id, threshold, notified(boolean)
+Relationships:
+One product → many stock_history entries
+One product → many stock_alerts
+
+5. Sales
+
+Tables:
+
+sales → id, business_id, customer_id, total_amount, status(PENDING/COMPLETED/CANCELLED), created_at
+
+sale_items → id, sale_id, product_id, variant_id, quantity, price
+
+payments → id, sale_id, amount, method, status, created_at
+
+receipts → id, sale_id, receipt_number, created_at
+
+Relationships:
+
+One sale → many sale_items
+
+One sale → many payments
+
+One customer → many sales
+
+6. Customers
+
+Tables:
+
+customers → id, business_id, name, email, phone, loyalty_points, created_at
+
+customer_notes → id, customer_id, note, user_id, created_at
+
+Relationships:
+
+One business → many customers
+
+One customer → many notes
+
+7. Suppliers
+
+Tables:
+
+suppliers → id, business_id, name, email, phone, address, created_at
+
+supplier_invoices → id, supplier_id, total_amount, status, created_at
+
+supplier_payments → id, supplier_invoice_id, amount, method, status, created_at
+
+Relationships:
+
+One supplier → many invoices
+
+One invoice → many payments
+
+8. Purchases
+
+Tables:
+
+purchase_orders → id, business_id, supplier_id, status, total_amount, created_at
+
+purchase_items → id, purchase_order_id, product_id, variant_id, quantity, price
+
+Relationships:
+
+One purchase_order → many purchase_items
+
+One supplier → many purchase_orders
+
+9. Reports (Analytics)
+
+Tables:
+
+daily_sales → id, business_id, date, total_sales, total_profit
+
+business_expenses → id, business_id, amount, type, date
+
+profit_logs → id, business_id, period_start, period_end, total_revenue, total_cost, total_profit
+
+Relationships:
+
+One business → many report entries
+
+10. Notifications
+
+Tables:
+
+notifications → id, business_id, user_id(optional), type, message, status(sent/pending), created_at
+
+Relationships:
+
+One business → many notifications
+
+Optional: user-specific notifications
+
+11. SaaS Subscriptions
+
+Tables:
+
+subscription_plans → id, name, price, features(JSON)
+
+subscriptions → id, business_id, subscription_plan_id, status(active/inactive), start_date, end_date
+
+invoices → id, subscription_id, amount, status, created_at
+
+payment_logs → id, invoice_id, method, status, created_at
+
+Relationships:
+
+One subscription_plan → many subscriptions
+
+One subscription → many invoices
+
+One invoice → many payment_logs

@@ -1,0 +1,10 @@
+Run Drizzle commands --> This is when running migrations
+
+Generate migrations (based on schema changes)
+npm run drizzle:generate
+
+Push migrations to the database
+npm run drizzle:push
+
+Open Drizzle Studio (GUI)
+npm run drizzle:studio

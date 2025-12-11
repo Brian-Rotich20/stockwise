@@ -1,0 +1,34 @@
+1.Install PostgreSQL
+Install PostgreSQL v14+
+Create a database for your project, e.g., hifadhi_db
+Note the connection details: host, port, user, password, database name
+
+2. Install Drizzle CLI (for migrations & schema management)
+Globally (or locally): npm i -g drizzle-kit
+Configure your drizzle.config.ts with:
+Database connection
+Schema folder path
+Migrations folder path
+
+7. Create Environment Variables
+Create .env in the root with variables like:
+DATABASE_URL=postgresql://user:password@localhost:5432/hifadhi_db
+JWT_SECRET=your_secret_key
+PORT=5000
+
+Also create .env.example for reference.
+
+Initialize TypeScript
+Create tsconfig.json with:
+target: ES2020
+module: commonjs
+strict: true
+outDir: dist
+
+9. Install and Configure Fastify Plugins
+CORS, JWT, Swagger
+These are global plugins registered in src/server/fastify.ts
+
+10. Verify Installation
+Run ts-node-dev src/server/index.ts (or equivalent entry file)
+The server should start without errors
