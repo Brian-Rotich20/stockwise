@@ -1,54 +1,85 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import helmet from "@fastify/helmet";
 import fastifyJwt from "@fastify/jwt";
+import rateLimit from "@fastify/rate-limit";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
+import type { FastifyError } from "fastify";
+// import { authenticate } from './middleware/auth.js'; 
 
+export async function buildServer() {
+  const app = Fastify({
+    logger: process.env.NODE_ENV === "development"
+      ? {
+          level: process.env.LOG_LEVEL || "info",
+          transport: {
+            target: "pino-pretty",
+            options: {
+              translateTime: "HH:MM:ss Z",
+              ignore: "pid,hostname",
+            },
+          },
+        }
+      : {
+          level: process.env.LOG_LEVEL || "info",
+        },
+  });
 
-export const app = Fastify({
-  logger: true,
-});
+  await app.register(cors, {
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  });
 
-// 1. CORS
-app.register(cors, {
-  origin: "*", // allow all, adjust later for production
-  methods: ["GET", "POST", "PUT", "DELETE"],
-});
+  await app.register(helmet, { contentSecurityPolicy: false });
 
-// 2. JWT Auth (use your own secret)
-app.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET || "supersecret",
-});
+  await app.register(fastifyJwt, {
+    secret: process.env.JWT_SECRET || "your-secret-key-change-this",
+  });
 
-// Decorate: add app.jwtVerify to request
-app.decorate(
-  "authenticate",
-  async function (request: any, reply: any) {
+  app.decorate("authenticate", async function (request: any, reply: any) {
     try {
       await request.jwtVerify();
     } catch (err) {
-      reply.send(err);
+      reply.code(401).send({ error: 'Unauthorized', message: 'Invalid or expired token' });
     }
-  }
-);
+  });
 
-// 1. Register Swagger (spec only)
-app.register(fastifySwagger, {
-  swagger: {
-    info: {
-      title: "API Documentation",
-      description: "StockWise Backend API",
-      version: "1.0.0",
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: "15 minutes",
+  });
+
+  await app.register(fastifySwagger, {
+    swagger: {
+      info: {
+        title: "API Documentation",
+        description: "StockWise Backend API",
+        version: "1.0.0",
+      },
+      tags: [{ name: "auth", description: "Authentication Routes" }],
     },
-    tags: [{ name: "auth", description: "Authentication Routes" }],
-  },
-});
+  });
 
-// 2. Register Swagger UI (this one has exposeRoute + routePrefix)
-app.register(fastifySwaggerUi, {
-  routePrefix: "/docs",
-  uiConfig: {
-    docExpansion: "list",
-    deepLinking: false,
-  },
-});
+  await app.register(fastifySwaggerUi, {
+    routePrefix: "/docs",
+    uiConfig: { docExpansion: "list", deepLinking: false },
+  });
+
+  app.get("/health", async () => {
+    return { status: "ok", timestamp: new Date().toISOString() };
+  });
+
+  app.setErrorHandler((err: FastifyError, request, reply) => {
+    app.log.error(err);
+
+    reply.status(err.statusCode ?? 500).send({
+      error: err.name ?? "Internal Server Error",
+      message: err.message ?? "Something went wrong",
+      statusCode: err.statusCode ?? 500,
+    });
+  });
+
+  return app;
+}

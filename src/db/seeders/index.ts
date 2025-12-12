@@ -44,26 +44,32 @@ async function seed() {
   const createdCategories = await db.insert(categories).values(categoryData).returning();
   console.log('✅ Categories created:', createdCategories.length);
 
-  // Create sample products
+  // Destructure and guard individual elements so TypeScript knows they're defined
+  const [catA, catB] = createdCategories;
+  if (!catA || !catB) {
+    throw new Error('Failed to create enough categories; expected at least 2');
+  }
+
+  // Create sample products (now safe to use catA.id and catB.id)
   const productData = [
     {
       sku: 'ELEC-001',
       name: 'Laptop HP ProBook',
-      price: 899.99,
-      cost: 650.00,
+      price: '899.99',
+      cost: '650.0',
       quantity: 15,
       reorderPoint: 5,
-      categoryId: createdCategories[0].id,
+      categoryId: catA.id,
       tenantId: tenant.id,
     },
     {
       sku: 'CLOTH-001',
       name: 'Cotton T-Shirt',
       price: '19.99',
-      cost: '8.00',
+      cost: '8.0',
       quantity: 100,
       reorderPoint: 20,
-      categoryId: createdCategories[1].id,
+      categoryId: catB.id,
       tenantId: tenant.id,
     },
   ];
