@@ -27,8 +27,8 @@ export const updateProductSchema = z.object({
 });
 
 export const productQuerySchema = z.object({
-  page: z.string().transform(Number).pipe(z.number().int().positive()).default('1'),
-  limit: z.string().transform(Number).pipe(z.number().int().positive().max(100)).default('20'),
+  page: z.string().transform(Number).pipe(z.number().int().positive()).default(1),
+  limit: z.string().transform(Number).pipe(z.number().int().positive().max(100)).default(20),
   search: z.string().optional(),
   categoryId: z.string().transform(Number).pipe(z.number().int().positive()).optional(),
   minPrice: z.string().transform(Number).pipe(z.number().min(0)).optional(),

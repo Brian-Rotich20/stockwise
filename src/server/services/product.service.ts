@@ -1,5 +1,5 @@
 import { db } from '../../db/index.js';
-import { products, categories, type NewProduct } from '../../db/schema/index.js';
+import { products, categories } from '../../db/schema/index.js';
 import { eq, and, ilike, or, sql, isNull, gte, lte, desc, asc } from 'drizzle-orm';
 
 export class ProductService {
@@ -69,20 +69,7 @@ export class ProductService {
   }
 
   // Get all products with filters and pagination
-  async getProducts(
-    tenantId: number,
-    filters: {
-      page: number;
-      limit: number;
-      search?: string;
-      categoryId?: number;
-      minPrice?: number;
-      maxPrice?: number;
-      lowStock?: boolean;
-      sortBy: string;
-      sortOrder: 'asc' | 'desc';
-    }
-  ) {
+  async getProducts(tenantId: number, filters: ProductQueryFilters) {
     const { page, limit, search, categoryId, minPrice, maxPrice, lowStock, sortBy, sortOrder } = filters;
     const offset = (page - 1) * limit;
 
@@ -280,6 +267,10 @@ export class ProductService {
       )
       .returning({ id: products.id, name: products.name });
 
+    if (!deletedProduct) {
+      throw new Error('Failed to delete product');
+    }
+
     return deletedProduct;
   }
 
@@ -329,17 +320,41 @@ export class ProductService {
 
 export const productService = new ProductService();
 
-type CreateProductInput = {
+// Type definitions
+export type CreateProductInput = {
   sku: string;
   name: string;
-  description?: string;
+  description?: string | undefined;
   price: string;
-  cost?: string;
+  cost?: string | undefined;
   quantity: number;
   reorderPoint: number;
-  categoryId?: number;
-  barcode?: string;
-  imageUrl?: string;
+  categoryId?: number | undefined;
+  barcode?: string | undefined;
+  imageUrl?: string | undefined;
 };
 
-type UpdateProductInput = Partial<CreateProductInput>;
+export type UpdateProductInput = {
+  sku?: string | undefined;
+  name?: string | undefined;
+  description?: string | undefined;
+  price?: string | undefined;
+  cost?: string | undefined;
+  quantity?: number | undefined;
+  reorderPoint?: number | undefined;
+  categoryId?: number | undefined;
+  barcode?: string | undefined;
+  imageUrl?: string | undefined;
+};
+
+export type ProductQueryFilters = {
+  page: number;
+  limit: number;
+  search?: string | undefined;
+  categoryId?: number | undefined;
+  minPrice?: number | undefined;
+  maxPrice?: number | undefined;
+  lowStock?: boolean | undefined;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+};
