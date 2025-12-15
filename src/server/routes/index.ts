@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { authRoutes } from './auth.js';
 import { productRoutes } from './products.js';
+import { categoryRoutes } from './categories.js';
 
 export async function registerRoutes(fastify: FastifyInstance) {
   // Register auth routes
@@ -9,4 +10,6 @@ export async function registerRoutes(fastify: FastifyInstance) {
   // Add more route groups here as you build them
    fastify.register(productRoutes, { prefix: '/api/products' });
   // fastify.register(orderRoutes, { prefix: '/api/orders' });
+
+  fastify.register(categoryRoutes, { prefix: '/api/categories' });
 }
