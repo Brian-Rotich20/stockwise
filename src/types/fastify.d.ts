@@ -12,6 +12,9 @@ declare module 'fastify' {
     } | null; // null if not authenticated
     tenantId?: number; // optional, set in middleware
   }
+  interface FastifyInstance {
+    authenticate: (request: FastifyRequest, reply: any, done: (err?: Error) => void) => void;
+  }
 }
 
 export {};  

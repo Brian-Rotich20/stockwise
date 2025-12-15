@@ -47,7 +47,7 @@ export async function productRoutes(fastify: FastifyInstance) {
     try {
       const query = productQuerySchema.parse(request.query);
       const tenantId = request.user!.tenantId;
-
+      
       const result = await productService.getProducts(tenantId, {
         page: query.page,
         limit: query.limit,

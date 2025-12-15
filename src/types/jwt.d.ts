@@ -4,11 +4,13 @@ import '@fastify/jwt';
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    // This types the payload (the decoded JWT contents)
-    // Adjust if your actual JWT contains different fields
-    payload: { id: number }; // example: whatever is in your signed JWT
-
-    // This types request.user — THIS IS THE KEY PART
+   payload: {
+      id: number;
+      email: string;
+      role?: 'admin' | 'manager' | 'staff';
+      tenantId?: number | null;
+      type?: 'refresh'; // optional for refresh tokens
+    };
     user: {
       id: number;
       email: string;
