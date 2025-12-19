@@ -216,4 +216,27 @@ export async function productRoutes(fastify: FastifyInstance) {
       }
     }
   );
+
+
+  // Get suppliers for a product
+  fastify.get('/:id/suppliers', async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      const tenantId = request.user!.tenantId;
+
+      // Import supplierService at top of file
+      const { supplierService } = await import('../services/supplier.service.js');
+      const suppliers = await supplierService.getProductSuppliers(parseInt(id), tenantId);
+
+      reply.send({
+        success: true,
+        data: { suppliers, count: suppliers.length },
+      });
+    } catch (error: any) {
+      reply.code(404).send({
+        error: 'Failed to fetch product suppliers',
+        message: error.message,
+      });
+    }
+  });
 }
