@@ -205,31 +205,32 @@ export class CategoryService {
   }
 
   // Get category path (breadcrumb)
-  async getCategoryPath(id: number, tenantId: number): Promise<CategoryPathNode[]> {
-    const path: CategoryPathNode[] = [];
-    let currentId: number | null = id;
+async getCategoryPath(id: number, tenantId: number): Promise<CategoryPathNode[]> {
+  const path: CategoryPathNode[] = [];
+  let currentId: number | null = id;
 
-    while (currentId !== null) {
-      const category = await db.query.categories.findFirst({
-        where: and(
-          eq(categories.id, currentId),
-          eq(categories.tenantId, tenantId)
-        ),
-        columns: {
-          id: true,
-          name: true,
-          parentId: true,
-        },
-      });
+  while (currentId !== null) {
+    // ADD EXPLICIT TYPE HERE
+    const category: { id: number; name: string; parentId: number | null } | undefined = await db.query.categories.findFirst({
+      where: and(
+        eq(categories.id, currentId),
+        eq(categories.tenantId, tenantId)
+      ),
+      columns: {
+        id: true,
+        name: true,
+        parentId: true,
+      },
+    });
 
-      if (!category) break;
+    if (!category) break;
 
-      path.unshift({ id: category.id, name: category.name });
-      currentId = category.parentId;
-    }
-
-    return path;
+    path.unshift({ id: category.id, name: category.name });
+    currentId = category.parentId;
   }
+
+  return path;
+}
 
   // Update category
   async updateCategory(id: number, data: UpdateCategoryInput, tenantId: number) {
@@ -351,7 +352,8 @@ export class CategoryService {
         return true; // Found circular reference
       }
 
-      const parent = await db.query.categories.findFirst({
+      // ADD EXPLICIT TYPE HERE
+      const parent: { parentId: number | null } | undefined = await db.query.categories.findFirst({
         where: and(
           eq(categories.id, currentId),
           eq(categories.tenantId, tenantId)
@@ -364,7 +366,6 @@ export class CategoryService {
 
     return false;
   }
-
   // Check circular reference helper
   private async checkCircularReference(parentId: number, tenantId: number): Promise<boolean> {
     // This is a simplified check - full check happens in wouldCreateCircularReference
